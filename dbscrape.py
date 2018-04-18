@@ -117,8 +117,6 @@ def getIntern(soup):
                     otherStudy = (interns.next_sibling.next_sibling.text.strip())
                     internArray.append(school+ " "+study)
                 
-#            else:
-#                print('false')
         return internArray
     except:
         pass
@@ -152,17 +150,6 @@ def getFellowship(soup):
                     otherFellowSchool = fellows.next_sibling.strip()
                     otherFellowStudy = fellows.next_sibling.next_sibling.text.strip()
                     fellowArray.append(otherFellowSchool + " - " + otherFellowStudy)
-        
-            
-        
-#        temp = fellowshipList.get_text().strip().replace("\b","").replace("\n","").replace(u'\u2014','-')
-#        regex = re.compile('[^a-zA-Z0-9\n]')
-#        temp = regex.sub(' ', temp)
-#        for i in temp.split("  "):
-#            if(len(i) > 4):
-#                fellowArray.append(i)
-#            else:
-#                pass
         return fellowArray
     except:
         pass
@@ -211,7 +198,6 @@ def getFirstLoc(soup):
         firstLocAddr = soup.find(id='main_1_contentpanel_0_ctl05_ctl00_rptOffices_pnlAddress_0')
         addr = (firstLocAddr.find('br').previous_sibling).strip()
         city = (firstLocAddr.find('br').next_sibling).strip()
-        #print(addr + ", " + city)
         firstLocNum = soup.find(id='main_1_contentpanel_0_ctl05_ctl00_rptOffices_pnlPhone_0').text.strip().split(" ")
         for number in firstLocNum:
             if(len(number) > 5):
@@ -317,25 +303,6 @@ if __name__ == "__main__":
         with open('outputTest.text','w') as outfile:
             json.dump(physician_database,outfile)
     #print(json.dumps(physician_database))
-    '''
-    soup = openUrl(test_doctor)
-    print("Name: " + getDocName(soup) + "\n")
-    print("Specialties: " + getSpecialties(soup) + "\n")
-    print("Interests: " + getInterests(soup) + "\n")
-    print("Services: " + str(getServices(soup)) + "\n")
-    print("Certifications: " + str(getCert(soup)) + "\n")
-    print("Languages: " + str(getLang(soup)) + "\n")
-    print("Gender: " + str(getGender(soup)) + "\n")
-    print("MedSchool: " + str(getMedSchool(soup)) + "\n")
-    print("Intern: " + str(getIntern(soup)) + "\n")
-    print("Residency: " + str(getResidency(soup)) + "\n")
-    print("Fellowship: " + str(getFellowship(soup)) + "\n")
-    print("Professional Position: " + str(getProfPos(soup)) + "\n")
-    print("Awards: " + str(getAwards(soup)) + "\n")
-    print("More Info: " + str(getMoreInfo(soup)) + "\n")
-    print("Location 1: " + str(getFirstLoc(soup)) + "\n")
-    print("Location 2: " + str(getSecLoc(soup)) + "\n")
-    '''
     
 
    
