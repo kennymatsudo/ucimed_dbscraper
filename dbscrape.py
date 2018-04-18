@@ -5,17 +5,12 @@ import json
 
 ###################### bugs #########################
 
-# location - no comma between address and city
-# medschool - no comma between school and study
+# location - no comma between address and city - FIXED
+# medschool - no comma between school and study - FIXED
+# \t gets returned sometimes - FIXED
 
 #####################################################
-
 physician_database = {}
-
-test_doctor = 'http://www.ucirvinehealth.org/find-a-doctor/a/pablo-abbona'
-def loopFile(string):
-    pass
-    
 
 def openUrl(website):
     page = urllib2.urlopen(website)
@@ -25,7 +20,7 @@ def openUrl(website):
 
 def getDocName(soup):
     getName = soup.find(id='main_1_contentpanel_0_pnlInfo')
-    name = getName.find('h1').text.strip()
+    name = getName.find('h1').text.strip().replace("."," ")
     return name
 
 def getSpecialties(soup):
@@ -99,6 +94,11 @@ def getMedSchool(soup):
         return medSchoolArray
     except:
         pass
+'''
+            school = (mschool.find('span').previous_sibling.strip())
+            study = (mschool.find('span').text.strip())
+            medSchoolArray.append(school + " " + study)
+'''
 
 def getIntern(soup):
     try:
@@ -107,7 +107,18 @@ def getIntern(soup):
         internTitle = getIntern.find('div',{'class':'module-pd-tab-label'}).string.strip()
         internList = getIntern.find_all('div',{'class':'module-pd-attribute'})
         for ischool in internList:
-            internArray.append(ischool.text.strip())
+            school = (ischool.find('span').previous_sibling.strip())
+            study = (ischool.find('span').text.strip())
+            internArray.append(school+ " " + study)
+            if(ischool.find('br')):
+                allInterns = ischool.find_all('br')
+                for interns in allInterns:
+                    otherSchool = (interns.next_sibling.strip())
+                    otherStudy = (interns.next_sibling.next_sibling.text.strip())
+                    internArray.append(school+ " "+study)
+                
+#            else:
+#                print('false')
         return internArray
     except:
         pass
@@ -129,15 +140,29 @@ def getFellowship(soup):
         fellowArray = []
         getFellowship = soup.find(id="main_1_contentpanel_0_ctl05_pnlTabFellowship")
         fellowshipTitle = getFellowship.find('div',{'class':'module-pd-tab-label'}).string.strip()
-        fellowshipList = getFellowship.find('div',{'class':'module-pd-attribute'})
-        temp = fellowshipList.get_text().strip().replace("\b","").replace("\n","")
-        regex = re.compile('[^a-zA-Z0-9\n]')
-        temp = regex.sub(' ', temp)
-        for i in temp.split("  "):
-            if(len(i) > 4):
-                fellowArray.append(i)
-            else:
-                pass
+        fellowshipList = getFellowship.find_all('div',{'class':'module-pd-attribute'})
+
+        for i in fellowshipList:           
+            school = i.find('span').previous_sibling.strip()
+            study = i.find('span').text.strip()
+            fellowArray.append(school+ " - " + study)
+            if(i.find('br')):
+                allFellowships = i.find_all('br')
+                for fellows in allFellowships:
+                    otherFellowSchool = fellows.next_sibling.strip()
+                    otherFellowStudy = fellows.next_sibling.next_sibling.text.strip()
+                    fellowArray.append(otherFellowSchool + " - " + otherFellowStudy)
+        
+            
+        
+#        temp = fellowshipList.get_text().strip().replace("\b","").replace("\n","").replace(u'\u2014','-')
+#        regex = re.compile('[^a-zA-Z0-9\n]')
+#        temp = regex.sub(' ', temp)
+#        for i in temp.split("  "):
+#            if(len(i) > 4):
+#                fellowArray.append(i)
+#            else:
+#                pass
         return fellowArray
     except:
         pass
@@ -149,7 +174,7 @@ def getProfPos(soup):
         positionTitle = getPositions.find('div',{'class':'module-pd-tab-label'}).string.strip()
         positionList = getPositions.find_all('li')
         for positions in positionList:
-            profPosArray.append(positions.string)
+            profPosArray.append(positions.text.replace(u"\u2014",""))
         return profPosArray
     except:
         pass
@@ -161,7 +186,7 @@ def getAwards(soup):
         awardsTitle = getAwards.find('div',{'class':'module-pd-tab-label'}).string.strip()
         awardList = getAwards.find_all('li')
         for awards in awardList:
-            awardArray.append(awards.string)
+            awardArray.append(awards.text.replace(u"\u2014","").replace(u"\xae"," -"))
         return awardArray
     except:
         pass
@@ -210,23 +235,25 @@ def getSecLoc(soup):
     
 def toJSON(name,spec,interest,serv,certif,lang,gen,meds,interns,res,fell,prof,awards,info,loc1,loc2):
     physician_database[name] = {
-        'name':name,
-        'specialties':spec,
-        'interests':interest,
-        'services':serv,
-        'certifications':certif,
-        'languages':lang,
-        'gender':gen,
-        'med_school':meds,
-        'internships':interns,
-        'residency':res,
-        'fellowship':fell,
-        'professional_position':prof,
-        'awards_recognition':awards,
-        'more_info':info,
-        'first_location':loc1,
-        'second_location':loc2}
+        'name':(name),
+        'specialties':(spec),
+        'interests':(interest),
+        'services': (serv),
+        'certifications':(certif),
+        'languages':(lang),
+        'gender':(gen),
+        'med_school':(meds),
+        'internships':(interns),
+        'residency':(res),
+        'fellowship':(fell),
+        'professional_position': (prof),
+        'awards_recognition':(awards),
+        'more_info':(info),
+        'first_location':(loc1),
+        'second_location':(loc2)
+        }
     return physician_database
+
 
     
 if __name__ == "__main__":
@@ -287,7 +314,7 @@ if __name__ == "__main__":
         
         toJSON(name,specialties,interests,services,certification,languages,gender,medical_schools,internships,residency,fellowship,professional_pos,awards,more_info,first_location,second_location)
 
-        with open('outputFile.txt','w') as outfile:
+        with open('outputTest.text','w') as outfile:
             json.dump(physician_database,outfile)
     #print(json.dumps(physician_database))
     '''
